@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saree Style Detector</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8f9fa;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1.2rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2d3748;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #4a5568;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #2d3748;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem 3rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #718096;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .uploaded-image-preview {
+            display: none;
+            margin-top: 1.5rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .uploaded-image-preview.show {
+            display: block;
+        }
+
+        .uploaded-image-preview img {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+            background: #f7fafc;
+        }
+
+        .image-info {
+            padding: 1rem;
+            background: #f7fafc;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.875rem;
+            color: #718096;
+        }
+
+        .upload-box {
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f7fafc;
+        }
+
+        .upload-box:hover {
+            border-color: #e91e63;
+            background: #fff5f7;
+        }
+
+        .upload-box.dragover {
+            border-color: #e91e63;
+            background: #fff0f5;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtitle {
+            font-size: 0.9rem;
+            color: #a0aec0;
+        }
+
+        .upload-btn {
+            background: #e91e63;
+            color: white;
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .upload-btn:hover {
+            background: #c2185b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Results Section */
+        .results-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .results-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .timestamp {
+            font-size: 0.8rem;
+            color: #a0aec0;
+        }
+
+        .clear-btn {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover {
+            background: #edf2f7;
+        }
+
+        /* Result Cards */
+        .result-card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #718096;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .result-value.success {
+            color: #48bb78;
+        }
+
+        .result-value.error {
+            color: #f56565;
+        }
+
+        .result-value.primary {
+            color: #e91e63;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .badge-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge-error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .badge-warning {
+            background: #feebc8;
+            color: #744210;
+        }
+
+        /* Draping Style Card */
+        .draping-card {
+            background: linear-gradient(135deg, #fff5f7 0%, #ffe4ec 100%);
+            border: 2px solid #fbb6ce;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .draping-style-name {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #e91e63;
+            margin-bottom: 0.75rem;
+        }
+
+        .draping-description {
+            font-size: 0.9rem;
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        /* Confidence Score */
+        .confidence-container {
+            margin-top: 1rem;
+        }
+
+        .confidence-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #718096;
+            margin-bottom: 0.5rem;
+        }
+
+        .confidence-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #2d3748;
+        }
+
+        /* Predictions List */
+        .predictions-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            border-left: 3px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .prediction-item:hover {
+            border-left-color: #e91e63;
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .prediction-name {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .prediction-confidence {
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        /* Loading State */
+        .loading-container {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #e91e63;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            color: #718096;
+            font-weight: 600;
+        }
+
+        /* Error Alert */
+        .error-alert {
+            background: #fed7d7;
+            border-left: 4px solid #f56565;
+            color: #742a2a;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .error-alert.show {
+            display: block;
+        }
+
+        .error-icon {
+            margin-right: 0.5rem;
+        }
+
+        /* Person Detection Warning */
+        .person-warning {
+            background: #feebc8;
+            border-left: 4px solid #ed8936;
+            color: #744210;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .person-warning strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .footer-text {
+            color: #718096;
+            font-size: 0.875rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        .footer-links a {
+            color: #4a5568;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 2rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+
+            .upload-section,
+            .results-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                <span class="logo-icon">👗</span>
+                <span>Saree Style Detector</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Discover the Art of Draping</h1>
+        <p>Upload an image to instantly identify the saree draping style. Our AI-powered tool analyzes your photo and provides detailed results in seconds.</p>
+    </section>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="main-grid">
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <div class="upload-box" id="uploadBox">
+                    <div class="upload-icon">☁️</div>
+                    <div class="upload-title">Drag & Drop or Click to Upload</div>
+                    <div class="upload-subtitle">Supports: JPG, PNG, WEBP. Max size: 5MB</div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Upload Image
+                </button>
+
+                <!-- Uploaded Image Preview -->
+                <div class="uploaded-image-preview" id="uploadedImagePreview">
+                    <img id="uploadedImage" alt="Uploaded Image">
+                    <div class="image-info" id="imageInfo">
+                        Uploaded: <span id="imageFileName">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <!-- Error Alert -->
+                <div class="error-alert" id="errorAlert">
+                    <span class="error-icon">⚠️</span>
+                    <span id="errorMessage"></span>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-container" id="loadingContainer" style="display: none;">
+                    <div class="spinner"></div>
+                    <p class="loading-text">Analyzing your image...</p>
+                </div>
+
+                <!-- Results Content -->
+                <div id="resultsContent" style="display: none;">
+                    <div class="results-header">
+                        <div>
+                            <h2 class="results-title">Detection Results</h2>
+                            <p class="timestamp" id="timestamp"></p>
+                        </div>
+                        <button class="clear-btn" onclick="clearResults()">🗑️ Clear</button>
+                    </div>
+
+                    <!-- Person Detection Status -->
+                    <div id="personStatus"></div>
+
+                    <!-- Saree Detection Status -->
+                    <div class="result-card">
+                        <div class="result-label">Saree Detected</div>
+                        <div class="result-value" id="sareeStatus">-</div>
+                    </div>
+
+                    <!-- Draping Style (shown only if saree detected) -->
+                    <div id="drapingSection" style="display: none;">
+                        <div class="draping-card">
+                            <div class="draping-style-name" id="drapingStyle">-</div>
+                            <div class="draping-description" id="drapingDescription"></div>
+                            <!-- <div class="confidence-container">
+                                <div class="confidence-label">Confidence Score</div>
+                                <div class="confidence-value" id="confidenceScore">-</div>
+                            </div> -->
+                        </div>
+
+                        <!-- All Predictions -->
+                        <div id="allPredictions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p class="footer-text">© 2024 Saree Style Detector. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="#about">About</a>
+            <a href="#privacy">Privacy Policy</a>
+            <a href="#contact">Contact</a>
+        </div>
+    </footer>
+
+    <script>
+        const uploadBox = document.getElementById('uploadBox');
+        const fileInput = document.getElementById('fileInput');
+        const resultsSection = document.getElementById('resultsSection');
+        const loadingContainer = document.getElementById('loadingContainer');
+        const resultsContent = document.getElementById('resultsContent');
+        const errorAlert = document.getElementById('errorAlert');
+
+        // Drag and drop handlers
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.classList.add('dragover');
+        });
+
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.classList.remove('dragover');
+        });
+
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileUpload();
+            }
+        });
+
+        uploadBox.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', handleFileUpload);
+
+        async function handleFileUpload() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // Reset previous results
+            hideError();
+            
+            // Show uploaded image preview
+            const uploadedImagePreview = document.getElementById('uploadedImagePreview');
+            const uploadedImage = document.getElementById('uploadedImage');
+            const imageFileName = document.getElementById('imageFileName');
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                uploadedImage.src = e.target.result;
+                uploadedImagePreview.classList.add('show');
+                imageFileName.textContent = file.name;
+            };
+            reader.readAsDataURL(file);
+            
+            // Validate file
+            if (!file.type.startsWith('image/')) {
+                showError('Please upload a valid image file (JPG, PNG, WEBP)');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showError('File size exceeds 5MB. Please upload a smaller image.');
+                return;
+            }
+
+            // Show loading state
+            resultsSection.classList.add('show');
+            loadingContainer.style.display = 'block';
+            resultsContent.style.display = 'none';
+
+            // Send to backend
+            await uploadToBackend(file);
+        }
+
+        async function uploadToBackend(file) {
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch('/api/detect', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                loadingContainer.style.display = 'none';
+                resultsContent.style.display = 'block';
+
+                if (!response.ok || data.status === 'error') {
+                    handleError(data);
+                } else {
+                    displayResults(data);
+                }
+
+            } catch (error) {
+                loadingContainer.style.display = 'none';
+                showError(`Network error: ${error.message}`);
+            }
+        }
+
+        function handleError(data) {
+            // Handle person detection errors
+            if (data.error_type === 'no_person') {
+                document.getElementById('personStatus').innerHTML = `
+                    <div class="person-warning" style="background: #fed7d7; border-left-color: #f56565;">
+                        <strong>❌ No Person Detected</strong><br>
+                        Please upload an image with a person visible in good lighting.
+                    </div>
+                `;
+                document.getElementById('sareeStatus').textContent = '-';
+                document.getElementById('sareeStatus').className = 'result-value';
+            } else if (data.error_type === 'multiple_persons') {
+                document.getElementById('personStatus').innerHTML = `
+                    <div class="person-warning" style="background: #fef3c7; border-left-color: #f59e0b; border-left-width: 4px;">
+                        <div style="font-size: 1.2em; margin-bottom: 0.75rem;">
+                            <strong>⚠️ Group Photo Detected</strong>
+                        </div>
+                        <div style="font-size: 1.1em; padding: 1rem; background: white; border-radius: 8px; margin-bottom: 0.75rem;">
+                            Found <span style="font-weight: 800; color: #d97706; font-size: 1.3em;">more than 1 person</span> in this image
+                        </div>
+                        <div style="padding: 1rem; background: rgba(217, 119, 6, 0.1); border-radius: 8px;">
+                            <strong style="color: #92400e;">📸 Please upload an image with only ONE person</strong>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('sareeStatus').textContent = 'N/A';
+                document.getElementById('sareeStatus').className = 'result-value';
+                document.getElementById('sareeStatus').style.color = '#a0aec0';
+            } else {
+                showError(data.message || 'An error occurred during detection');
+            }
+        }
+
+        function displayResults(data) {
+            // Update timestamp
+            document.getElementById('timestamp').textContent = data.timestamp || new Date().toLocaleString();
+
+            // Person detection status
+            if (data.person_count !== undefined) {
+                const personHtml = data.person_count === 1 
+                    ? `<span class="status-badge badge-success">✓ One Person Detected </span>`
+                    : `<span class="status-badge badge-warning">⚠️ ${data.person_count} Persons Detected</span>`;
+                document.getElementById('personStatus').innerHTML = personHtml;
+            }
+
+            // Saree detection
+            const sareeStatusEl = document.getElementById('sareeStatus');
+            const drapingSection = document.getElementById('drapingSection');
+
+            if (data.is_saree || data.saree_detected) {
+                sareeStatusEl.textContent = 'Yes';
+                sareeStatusEl.className = 'result-value success';
+                
+                // Show draping section
+                drapingSection.style.display = 'block';
+                
+                // Display draping style
+                document.getElementById('drapingStyle').textContent = data.draping_style || 'Unknown Style';
+                document.getElementById('drapingDescription').textContent = data.description || '';
+                // document.getElementById('confidenceScore').textContent = 
+                //     `${(data.draping_confidence || 0).toFixed(0)}%`;
+
+                // Display all predictions
+                // if (data.all_predictions) {
+                //     displayAllPredictions(data.all_predictions);
+                // }
+            } else {
+                sareeStatusEl.textContent = 'No';
+                sareeStatusEl.className = 'result-value error';
+                drapingSection.style.display = 'none';
+
+                if (data.message) {
+                    document.getElementById('personStatus').innerHTML = `
+                        <div class="person-warning">
+                            <strong>${data.message}</strong>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // function displayAllPredictions(predictions) {
+        //     const container = document.getElementById('allPredictions');
+        //     const sorted = Object.entries(predictions).sort((a, b) => b[1] - a[1]);
+            
+        //     let html = '<div class="predictions-title">All Predictions</div>';
+            
+        //     sorted.forEach(([style, confidence]) => {
+        //         html += `
+        //             <div class="prediction-item">
+        //                 <span class="prediction-name">${style}</span>
+        //                 <span class="prediction-confidence">${confidence.toFixed(1)}%</span>
+        //             </div>
+        //         `;
+        //     });
+            
+        //     container.innerHTML = html;
+        // }
+
+        function showError(message) {
+            errorAlert.classList.add('show');
+            document.getElementById('errorMessage').textContent = message;
+            resultsSection.classList.add('show');
+        }
+
+        function hideError() {
+            errorAlert.classList.remove('show');
+        }
+
+        function clearResults() {
+            fileInput.value = '';
+            resultsSection.classList.remove('show');
+            hideError();
+            loadingContainer.style.display = 'none';
+            resultsContent.style.display = 'none';
+            document.getElementById('personStatus').innerHTML = '';
+            document.getElementById('drapingSection').style.display = 'none';
+            
+            // Hide uploaded image preview
+            document.getElementById('uploadedImagePreview').classList.remove('show');
+            document.getElementById('uploadedImage').src = '';
+            document.getElementById('imageFileName').textContent = '-';
+        }
+    </script>
+</body>
+</html>
